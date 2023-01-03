@@ -29,11 +29,15 @@ type LocationMap struct {
 }
 
 type Connection struct {
-	Game             string   `json:"game"`
-	Origin           string   `json:"origin"`
-	Destination      string   `json:"destination"`
-	Attributes       []string `json:"attributes"`
-	UnlockConditions string   `json:"unlockCondition,omitempty"`
+	Game              string   `json:"game"`
+	Origin            string   `json:"origin"`
+	Destination       string   `json:"destination"`
+	Attributes        []string `json:"attributes"`
+	UnlockConditions  string   `json:"unlockCondition,omitempty"`
+	EffectsNeeded     []string `json:"effectsNeeded,omitempty"`
+	SeasonAvailable   string   `json:"seasonAvailable,omitempty"`
+	ChancePercentage  string   `json:"chancePercentage,omitempty"`
+	ChanceDescription string   `json:"chanceDescription,omitempty"`
 }
 
 type Author struct {

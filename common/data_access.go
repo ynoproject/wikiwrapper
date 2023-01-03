@@ -114,7 +114,7 @@ func GetConnections(gameCode string) (connections []*Connection, err error) {
 	}
 
 	conditions := []string{fmt.Sprintf("%s:+", gameName), "Is subobject type::connection"}
-	printouts := []string{"Connection/Origin", "Connection/Location", "Connection/Attribute", "Connection/Unlock Conditions"}
+	printouts := []string{"Connection/Origin", "Connection/Location", "Connection/Attribute", "Connection/Unlock Conditions", "Connection/Effects needed", "Connection/Season available", "Connection/Chance percentage", "Connection/Chance description"}
 
 	parameters := params.Values{
 		"conditions":  strings.Join(conditions, "|"),
@@ -221,9 +221,9 @@ func GetMaps(gameCode string, locationTitle string) (locationMaps []*LocationMap
 	printouts := "Has location map"
 
 	parameters := params.Values{
-		"conditions": conditions,
-		"printouts": printouts,
-		"format": "json",
+		"conditions":  conditions,
+		"printouts":   printouts,
+		"format":      "json",
 		"api_version": "3",
 	}
 
@@ -497,6 +497,7 @@ func processConnection(gameCode string, value *jason.Object) (connection *Connec
 	var destination string
 
 	connectionOrigin, err := printouts.GetObjectArray("Connection/Origin")
+
 	if err != nil {
 		log.Print("SERVER", "origin", err.Error())
 		return connection, err
@@ -537,6 +538,30 @@ func processConnection(gameCode string, value *jason.Object) (connection *Connec
 		return connection, err
 	}
 
+	effectsNeeded, err := printouts.GetStringArray("Connection/Effects needed")
+	if err != nil {
+		log.Print("SERVER", "effectsNeeded", err.Error())
+		return connection, err
+	}
+
+	seasonAvailable, err := printouts.GetStringArray("Connection/Season available")
+	if err != nil {
+		log.Print("SERVER", "seasonAvailable", err.Error())
+		return connection, err
+	}
+
+	chancePercentage, err := printouts.GetStringArray("Connection/Chance percentage")
+	if err != nil {
+		log.Print("SERVER", "chancePercentage", err.Error())
+		return connection, err
+	}
+
+	chanceDescription, err := printouts.GetStringArray("Connection/Chance description")
+	if err != nil {
+		log.Print("SERVER", "chanceDescription", err.Error())
+		return connection, err
+	}
+
 	connection = &Connection{
 		Game:        gameCode,
 		Origin:      origin,
@@ -546,6 +571,22 @@ func processConnection(gameCode string, value *jason.Object) (connection *Connec
 
 	if len(unlockConditions) > 0 {
 		connection.UnlockConditions = unlockConditions[0]
+	}
+
+	if len(effectsNeeded) > 0 {
+		connection.EffectsNeeded = effectsNeeded
+	}
+
+	if len(seasonAvailable) > 0 {
+		connection.SeasonAvailable = seasonAvailable[0]
+	}
+
+	if len(chancePercentage) > 0 {
+		connection.ChancePercentage = chancePercentage[0]
+	}
+
+	if len(chanceDescription) > 0 {
+		connection.ChanceDescription = chanceDescription[0]
 	}
 
 	return connection, err
