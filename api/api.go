@@ -15,6 +15,7 @@ func Init() {
 	http.HandleFunc("/connections", handleConnections)
 	http.HandleFunc("/authors", handleAuthors)
 	http.HandleFunc("/maps", handleMaps)
+	http.HandleFunc("/vms", handleVendingMachines)
 
 	http.Serve(getListener(), nil)
 }
@@ -135,3 +136,24 @@ func handleMaps(w http.ResponseWriter, r *http.Request) {
 	w.Write(mapsJson)
 }
 
+func handleVendingMachines(w http.ResponseWriter, r *http.Request) {
+	gameParam, ok := r.URL.Query()["game"]
+	if !ok || len(gameParam) == 0 {
+		http.Error(w, "game not specified", http.StatusBadRequest)
+		return
+	}
+
+	vms, err := common.GetVendingMachines(gameParam[0])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	vmsJson, err := json.Marshal(vms)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(vmsJson)
+}

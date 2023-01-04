@@ -44,3 +44,10 @@ type Author struct {
 	Name         string `json:"name"`
 	OriginalName string `json:"originalName,omitempty"`
 }
+
+type VendingMachine struct {
+	Game     string   `json:"game"`
+	Path     string   `json:"path"`
+	MapId    string   `json:"mapId"`
+	EventIds []string `json:"eventId"`
+}

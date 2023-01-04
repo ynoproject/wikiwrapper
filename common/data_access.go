@@ -267,6 +267,59 @@ func GetMaps(gameCode string, locationTitle string) (locationMaps []*LocationMap
 	return locationMaps, err
 }
 
+func GetVendingMachines(gameCode string) (vendingMachines []*VendingMachine, err error) {
+	vendingMachines = []*VendingMachine{}
+	gameName, ok := gameNames[gameCode]
+	if !ok {
+		return vendingMachines, errors.New("game not supported")
+	}
+
+	client, err := createClient()
+	if err != nil {
+		return vendingMachines, err
+	}
+
+	conditions := []string{fmt.Sprintf("-Has subobject::%s:Vending Machine", gameName), "Vending Machine/Is implemented::true", "Vending Machine/Is accessible::true", "Vending Machine/Is secret::false"}
+	printouts := []string{"Has image path", "Vending Machine/Map ID", "Vending Machine/Event ID"}
+	queryParams := []string{"sort=Vending Machine/Location", "order=asc", "limit=500"}
+
+	parameters := params.Values{
+		"conditions":  strings.Join(conditions, "|"),
+		"printouts":   strings.Join(printouts, "|"),
+		"parameters":  strings.Join(queryParams, "|"),
+		"format":      "json",
+		"api_version": "3",
+	}
+
+	results := NewSmwQuery(client, parameters)
+	vmsToProcess, err := fetchAllResultsFromSmwQuery(results)
+	if err != nil {
+		return vendingMachines, err
+	}
+
+	for _, vmToProcess := range vmsToProcess {
+		if err != nil {
+			return vendingMachines, err
+		}
+
+		for _, value := range vmToProcess.Map() {
+			value, err := value.Object()
+			if err != nil {
+				return vendingMachines, err
+			}
+
+			vm, err := processVendingMachine(gameCode, value)
+			if err != nil {
+				return vendingMachines, err
+			}
+
+			vendingMachines = append(vendingMachines, vm)
+		}
+	}
+
+	return vendingMachines, err
+}
+
 func processLocation(gameCode string, value *jason.Object) (location *Location, err error) {
 	printouts, err := value.GetObject("printouts")
 	if err != nil {
@@ -629,4 +682,45 @@ func processAuthor(gameCode string, value *jason.Object) (author *Author, err er
 	}
 
 	return author, err
+}
+
+func processVendingMachine(gameCode string, value *jason.Object) (vendingMachine *VendingMachine, err error) {
+	vendingMachine = &VendingMachine{
+		Game: gameCode,
+	}
+	printouts, err := value.GetObject("printouts")
+	if err != nil {
+		return nil, err
+	}
+
+	path, err := printouts.GetStringArray("Has image path")
+	if err != nil {
+		log.Print("SERVER", "path", err.Error())
+		return nil, err
+	}
+	if len(path) > 0 {
+		vendingMachine.Path = path[0]
+	}
+
+	mapId, err := printouts.GetStringArray("Vending Machine/Map ID")
+	if err != nil {
+		log.Print("SERVER", "mapId", err.Error())
+		return nil, err
+	}
+
+	if len(mapId) > 0 {
+		vendingMachine.MapId = mapId[0]
+	}
+
+	eventIds, err := printouts.GetStringArray("Vending Machine/Event ID")
+	if err != nil {
+		log.Print("SERVER", "eventIds", err.Error())
+		return nil, err
+	}
+
+	if len(eventIds) > 0 {
+		vendingMachine.EventIds = eventIds
+	}
+
+	return vendingMachine, err
 }
