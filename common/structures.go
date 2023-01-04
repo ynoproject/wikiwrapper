@@ -49,5 +49,5 @@ type VendingMachine struct {
 	Game     string   `json:"game"`
 	Path     string   `json:"path"`
 	MapId    string   `json:"mapId"`
-	EventIds []string `json:"eventId"`
+	EventIds []string `json:"eventIds"`
 }
