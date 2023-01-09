@@ -114,7 +114,7 @@ func GetConnections(gameCode string) (connections []*Connection, err error) {
 	}
 
 	conditions := []string{fmt.Sprintf("%s:+", gameName), "Is subobject type::connection"}
-	printouts := []string{"Connection/Origin", "Connection/Location", "Connection/Attribute", "Connection/Unlock Conditions", "Connection/Effects needed", "Connection/Season available", "Connection/Chance percentage", "Connection/Chance description"}
+	printouts := []string{"Connection/Origin", "Connection/Location", "Connection/Attribute", "Connection/Unlock conditions", "Connection/Effects needed", "Connection/Season available", "Connection/Chance percentage", "Connection/Chance description"}
 
 	parameters := params.Values{
 		"conditions":  strings.Join(conditions, "|"),
@@ -585,7 +585,7 @@ func processConnection(gameCode string, value *jason.Object) (connection *Connec
 		return connection, err
 	}
 
-	unlockConditions, err := printouts.GetStringArray("Connection/Unlock Conditions")
+	unlockConditions, err := printouts.GetStringArray("Connection/Unlock conditions")
 	if err != nil {
 		log.Print("SERVER", "unlockConditions", err.Error())
 		return connection, err
