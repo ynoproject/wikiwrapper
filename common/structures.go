@@ -51,3 +51,22 @@ type VendingMachine struct {
 	MapId    string   `json:"mapId"`
 	EventIds []string `json:"eventIds"`
 }
+
+type Effect struct {
+	Name           string   `json:"name"`
+	OriginalName   string   `json:"originalName,omitempty"`
+	AlternateNames []string `json:"alias,omitempty"`
+	Location       string   `json:"location,omitempty"`
+}
+
+type MenuType struct {
+	Name       string `json:"name"`
+	Location   string `json:"location,omitempty"`
+	Conditions string `json:"omitempty"`
+}
+
+type VersionHistory struct {
+	VersionNumber string `json:"versionNumber"`
+	CreatedBy     string `json:"createdBy"`
+	CreatedAt     string `json:"createdAt"`
+}

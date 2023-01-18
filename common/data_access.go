@@ -28,6 +28,7 @@ var gameNames = map[string]string{
 
 func createClient() (client *mwclient.Client, err error) {
 	client, err = mwclient.New("https://yume.wiki/api.php", "yumeWikiAPIBot")
+	client.SetHTTPTimeout(60000000000)
 	return client, err
 }
 
