@@ -39,8 +39,8 @@ func getListener() net.Listener {
 
 func enableCors(w *http.ResponseWriter, r *http.Request) {
 	switch origin := r.Header.Get("Origin"); origin {
-	case "ynoproject.net", "2kki.app":
-		(*w).Header().Set("Access-Control-Allow-Origin", "https://"+origin)
+	case "https://ynoproject.net", "https://2kki.app":
+		(*w).Header().Set("Access-Control-Allow-Origin", origin)
 	}
 }
 
