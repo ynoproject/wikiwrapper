@@ -37,7 +37,15 @@ func getListener() net.Listener {
 	return listener
 }
 
+func enableCors(w *http.ResponseWriter, r *http.Request) {
+	switch origin := r.Header.Get("Origin"); origin {
+	case "ynoproject.net", "2kki.app":
+		(*w).Header().Set("Access-Control-Allow-Origin", "https://"+origin)
+	}
+}
+
 func handleLocations(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w, r)
 	gameParam, ok := r.URL.Query()["game"]
 	if !ok || len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -60,6 +68,7 @@ func handleLocations(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w, r)
 	gameParam, ok := r.URL.Query()["game"]
 	if !ok || len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -82,6 +91,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleAuthors(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w, r)
 	gameParam, ok := r.URL.Query()["game"]
 	if !ok || len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -109,6 +119,7 @@ func handleAuthors(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMaps(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w, r)
 	gameParam, ok := r.URL.Query()["game"]
 	if !ok || len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -137,6 +148,7 @@ func handleMaps(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleVendingMachines(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w, r)
 	gameParam, ok := r.URL.Query()["game"]
 	if !ok || len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
