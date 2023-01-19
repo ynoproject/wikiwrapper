@@ -12,18 +12,18 @@ import (
 )
 
 var gameNames = map[string]string{
-	"yume":                  "Yume Nikki",
-	"2kki":                  "Yume 2kki",
-	"flow":                  "Dotflow",
-	"someday":               "Someday",
-	"deepdreams":            "Deep Dreams",
-	"prayers":               "Answered Prayers",
-	"amillusion":            "Amillusion",
-	"unevendream":           "Uneven Dream",
-	"braingirl":             "Braingirl",
-	"collectiveunconscious": "Collective Unconscious",
-	"muma":                  "Muma Rope",
-	"genie":                 "Dream Genie",
+	"yume":        "Yume Nikki",
+	"2kki":        "Yume 2kki",
+	"flow":        "Dotflow",
+	"someday":     "Someday",
+	"deepdreams":  "Deep Dreams",
+	"prayers":     "Answered Prayers",
+	"amillusion":  "Amillusion",
+	"unevendream": "Uneven Dream",
+	"braingirl":   "Braingirl",
+	"cu":          "Collective Unconscious",
+	"muma":        "Muma Rope",
+	"genie":       "Dream Genie",
 }
 
 func createClient() (client *mwclient.Client, err error) {
