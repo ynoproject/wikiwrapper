@@ -392,6 +392,7 @@ func GetVendingMachines(gameCode string) (vendingMachines []*VendingMachine, err
 }
 
 func GetImages(gameCode string) (images []*LocationImage, err error) {
+	images = []*LocationImage{}
 	gameName, ok := gameNames[gameCode]
 	if !ok {
 		return images, errors.New("game not supported")
