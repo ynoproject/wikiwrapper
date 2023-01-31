@@ -46,13 +46,20 @@ func enableCors(w *http.ResponseWriter, r *http.Request) {
 
 func handleLocations(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w, r)
-	gameParam, ok := r.URL.Query()["game"]
-	if !ok || len(gameParam) == 0 {
+	gameParam := r.URL.Query().Get("game")
+	if gameParam == "" {
 		http.Error(w, "game not specified", http.StatusBadRequest)
 		return
 	}
 
-	locations, err := common.GetLocations(gameParam[0])
+	protagParam := r.URL.Query().Get("protag")
+	gameParams := common.GameParams{GameCode: gameParam}
+	if protagParam != "" {
+		gameParams.Protag = protagParam
+	}
+
+	locations, err := common.GetLocations(gameParams)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,13 +76,19 @@ func handleLocations(w http.ResponseWriter, r *http.Request) {
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w, r)
-	gameParam, ok := r.URL.Query()["game"]
-	if !ok || len(gameParam) == 0 {
+	gameParam := r.URL.Query().Get("game")
+	if gameParam == "" {
 		http.Error(w, "game not specified", http.StatusBadRequest)
 		return
 	}
 
-	connections, err := common.GetConnections(gameParam[0])
+	protagParam := r.URL.Query().Get("protag")
+	gameParams := common.GameParams{GameCode: gameParam}
+	if protagParam != "" {
+		gameParams.Protag = protagParam
+	}
+
+	connections, err := common.GetConnections(gameParams)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -11,6 +11,10 @@ import (
 	"github.com/antonholmquist/jason"
 )
 
+type GameParams struct {
+	GameCode, Protag string
+}
+
 var gameNames = map[string]string{
 	"yume":        "Yume Nikki",
 	"2kki":        "Yume 2kki",
@@ -24,6 +28,13 @@ var gameNames = map[string]string{
 	"cu":          "Collective Unconscious",
 	"muma":        "Muma Rope",
 	"genie":       "Dream Genie",
+}
+
+var protagCategoriesPerGame = map[string]map[string]string{
+	"unevendream": {
+		"kubotsuki":  "Category:Kubotsuki's Worlds",
+		"totsutsuki": "Category:Totsutsuki's Worlds",
+	},
 }
 
 func createClient() (client *mwclient.Client, err error) {
@@ -51,10 +62,29 @@ func fetchAllResultsFromSmwQuery(smwQuery *SmwQuery) (results []*jason.Object, e
 	return results, err
 }
 
-func GetLocations(gameCode string) (locations []*Location, err error) {
-	gameName, ok := gameNames[gameCode]
+func GetLocations(gameParams GameParams) (locations []*Location, err error) {
+	gameName, ok := gameNames[gameParams.GameCode]
 	if !ok {
 		return locations, errors.New("game not supported")
+	}
+
+	protagCategories, hasMultipleProtags := protagCategoriesPerGame[gameParams.GameCode]
+
+	if !hasMultipleProtags && gameParams.Protag != "" {
+		return locations, errors.New("game has only one protagonist")
+	}
+
+	if hasMultipleProtags && len(gameParams.Protag) == 0 {
+		return locations, errors.New("game has multiple protagonists, please specify one")
+	}
+
+	protagCategory := ""
+	if hasMultipleProtags && gameParams.Protag != "" {
+		protagCategory, ok = protagCategories[gameParams.Protag]
+
+		if !ok {
+			return locations, errors.New("protagonist does not exist or is misspelled")
+		}
 	}
 
 	client, err := createClient()
@@ -63,6 +93,9 @@ func GetLocations(gameCode string) (locations []*Location, err error) {
 	}
 
 	condition := fmt.Sprintf("Category:%s Locations", gameName)
+	if protagCategory != "" {
+		condition += "|" + protagCategory
+	}
 	printouts := []string{"Has location image", "Header background color", "Header font color", "Has primary author", "Has contributing author", "Japanese name", "Has BGM", "Has location map", "Version added", "Versions updated", "Version removed", "Version gaps"}
 
 	parameters := params.Values{
@@ -103,10 +136,29 @@ func GetLocations(gameCode string) (locations []*Location, err error) {
 	return locations, err
 }
 
-func GetConnections(gameCode string) (connections []*Connection, err error) {
-	gameName, ok := gameNames[gameCode]
+func GetConnections(gameParams GameParams) (connections []*Connection, err error) {
+	gameName, ok := gameNames[gameParams.GameCode]
 	if !ok {
 		return connections, errors.New("game not supported")
+	}
+
+	protagCategories, hasMultipleProtags := protagCategoriesPerGame[gameParams.GameCode]
+
+	if !hasMultipleProtags && gameParams.Protag != "" {
+		return connections, errors.New("game has only one protagonist")
+	}
+
+	if hasMultipleProtags && len(gameParams.Protag) == 0 {
+		return connections, errors.New("game has multiple protagonists, please specify one")
+	}
+
+	protagCategory := ""
+	if hasMultipleProtags && gameParams.Protag != "" {
+		protagCategory, ok = protagCategories[gameParams.Protag]
+
+		if !ok {
+			return connections, errors.New("protagonist does not exist or is misspelled")
+		}
 	}
 
 	client, err := createClient()
@@ -115,6 +167,9 @@ func GetConnections(gameCode string) (connections []*Connection, err error) {
 	}
 
 	conditions := []string{fmt.Sprintf("%s:+", gameName), "Is subobject type::connection"}
+	if protagCategory != "" {
+		conditions = append(conditions, fmt.Sprintf("-Has subobject::<q>[[%s]]</q>", protagCategory))
+	}
 	printouts := []string{"Connection/Origin", "Connection/Location", "Connection/Attribute", "Connection/Unlock conditions", "Connection/Effects needed", "Connection/Season available", "Connection/Chance percentage", "Connection/Chance description"}
 
 	parameters := params.Values{
@@ -143,7 +198,7 @@ func GetConnections(gameCode string) (connections []*Connection, err error) {
 				return connections, err
 			}
 
-			connection, err := processConnection(gameCode, value)
+			connection, err := processConnection(gameParams.GameCode, value)
 			if err != nil {
 				return connections, err
 			}
