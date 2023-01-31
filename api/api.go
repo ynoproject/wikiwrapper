@@ -16,6 +16,7 @@ func Init() {
 	http.HandleFunc("/authors", handleAuthors)
 	http.HandleFunc("/maps", handleMaps)
 	http.HandleFunc("/vms", handleVendingMachines)
+	http.HandleFunc("/images", handleImages)
 
 	http.Serve(getListener(), nil)
 }
@@ -23,16 +24,16 @@ func Init() {
 func getListener() net.Listener {
 	os.Remove("sockets/wikiwrapper.sock")
 
-	listener, err := net.Listen("unix", "sockets/wikiwrapper.sock")
+	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatal(err)
 		return nil
 	}
 
-	if err := os.Chmod("sockets/wikiwrapper.sock", 0666); err != nil {
-		log.Fatal(err)
-		return nil
-	}
+	// if err := os.Chmod("sockets/wikiwrapper.sock", 0666); err != nil {
+	// 	log.Fatal(err)
+	// 	return nil
+	// }
 
 	return listener
 }
@@ -72,6 +73,30 @@ func handleLocations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(locationsJson)
+}
+
+func handleImages(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w, r)
+	gameParam := r.URL.Query().Get("game")
+	if gameParam == "" {
+		http.Error(w, "game not specified", http.StatusBadRequest)
+		return
+	}
+
+	images, err := common.GetImages(gameParam)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	imagesJson, err := json.Marshal(images)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(imagesJson)
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {

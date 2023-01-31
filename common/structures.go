@@ -1,5 +1,7 @@
 package common
 
+import "encoding/json"
+
 type Location struct {
 	Title               string         `json:"title"`
 	LocationImage       string         `json:"locationImage"`
@@ -69,4 +71,16 @@ type VersionHistory struct {
 	VersionNumber string `json:"versionNumber"`
 	CreatedBy     string `json:"createdBy"`
 	CreatedAt     string `json:"createdAt"`
+}
+
+type LocationImage struct {
+	Title  string   `json:"title"`
+	Game   string   `json:"game"`
+	Images []*Image `json:"images"`
+}
+
+type Image struct {
+	Url    string      `json:"url"`
+	Width  json.Number `json:"width"`
+	Height json.Number `json:"height"`
 }

@@ -30,6 +30,21 @@ var gameNames = map[string]string{
 	"genie":       "Dream Genie",
 }
 
+var namespaceNumbers = map[string]string{
+	"yume":        "3000",
+	"2kki":        "3002",
+	"flow":        "3004",
+	"someday":     "3006",
+	"deepdreams":  "3008",
+	"prayers":     "3010",
+	"amillusion":  "3012",
+	"unevendream": "3014",
+	"braingirl":   "3016",
+	"cu":          "3018",
+	"muma":        "3020",
+	"genie":       "3022",
+}
+
 var protagCategoriesPerGame = map[string]map[string]string{
 	"unevendream": {
 		"kubotsuki":  "Category:Kubotsuki's Worlds",
@@ -374,6 +389,105 @@ func GetVendingMachines(gameCode string) (vendingMachines []*VendingMachine, err
 	}
 
 	return vendingMachines, err
+}
+
+func GetImages(gameCode string) (images []*LocationImage, err error) {
+	gameName, ok := gameNames[gameCode]
+	if !ok {
+		return images, errors.New("game not supported")
+	}
+	parameters := params.Values{
+		"action":       "query",
+		"format":       "json",
+		"prop":         "",
+		"list":         "",
+		"meta":         "",
+		"generator":    "categorymembers",
+		"gcmtitle":     fmt.Sprintf("Category:%s Locations", gameName),
+		"gcmnamespace": namespaceNumbers[gameCode],
+		"gcmtype":      "page|file",
+		"gcmlimit":     "max",
+	}
+
+	client, err := createClient()
+	if err != nil {
+		return images, err
+	}
+
+	locations, err := client.Get(parameters)
+	if err != nil {
+		return images, err
+	}
+
+	pagesToProcess, err := locations.GetObjectArray("query", "pages")
+	if err != nil {
+		return images, err
+	}
+
+	for _, pageToProcess := range pagesToProcess {
+		pageTitle, err := pageToProcess.GetString("title")
+		if err != nil {
+			return images, err
+		}
+
+		title := strings.Split(pageTitle, ":")[1]
+		pageImage := &LocationImage{
+			Title: title,
+			Game:  gameCode,
+		}
+
+		parameters := params.Values{
+			"action":    "query",
+			"format":    "json",
+			"prop":      "imageinfo",
+			"list":      "",
+			"titles":    pageTitle,
+			"generator": "images",
+			"iiprop":    "size|url",
+		}
+		results, err := client.Get(parameters)
+		if err != nil {
+			return images, err
+		}
+
+		pageImagesToProcess, err := results.GetObjectArray("query", "pages")
+		if err != nil {
+			return images, err
+		}
+
+		for _, pageImageToProcess := range pageImagesToProcess {
+
+			imageInfoToProcess, err := pageImageToProcess.GetObjectArray("imageinfo")
+			if err != nil {
+				continue
+			}
+
+			for _, imageInfo := range imageInfoToProcess {
+				url, err := imageInfo.GetString("url")
+				if err != nil {
+					return images, err
+				}
+
+				width, err := imageInfo.GetNumber("width")
+				if err != nil {
+					return images, err
+				}
+
+				height, err := imageInfo.GetNumber("height")
+				if err != nil {
+					return images, err
+				}
+
+				pageImage.Images = append(pageImage.Images, &Image{
+					Url:    url,
+					Width:  width,
+					Height: height,
+				})
+			}
+		}
+		images = append(images, pageImage)
+	}
+	return images, err
 }
 
 func processLocation(gameCode string, value *jason.Object) (location *Location, err error) {
