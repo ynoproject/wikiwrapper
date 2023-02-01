@@ -450,7 +450,9 @@ func GetImages(gameCode string) (images []*LocationImage, err error) {
 			"titles":    pageTitle,
 			"generator": "images",
 			"iiprop":    "size|url",
+			"gimlimit":  "max",
 		}
+		
 		results, err := client.Get(parameters)
 		if err != nil {
 			return images, err
