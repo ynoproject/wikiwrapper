@@ -24,7 +24,7 @@ func Init() {
 func getListener() net.Listener {
 	os.Remove("sockets/wikiwrapper.sock")
 
-	listener, err := net.Listen("unix", "sockets/wikiwrapper.sock")
+	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatal(err)
 		return nil

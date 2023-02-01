@@ -398,7 +398,6 @@ func GetImages(gameCode string) (images []*LocationImage, err error) {
 		return images, errors.New("game not supported")
 	}
 	parameters := params.Values{
-		"action":       "query",
 		"format":       "json",
 		"prop":         "",
 		"list":         "",
@@ -415,13 +414,19 @@ func GetImages(gameCode string) (images []*LocationImage, err error) {
 		return images, err
 	}
 
-	locations, err := client.Get(parameters)
-	if err != nil {
-		return images, err
+	query := client.NewQuery(parameters)
+	pagesToProcess := []*jason.Object{}
+	for query.Next() {
+		locations := query.Resp()
+		results, err := locations.GetObjectArray("query", "pages")
+		if err != nil {
+			return images, err
+		}
+
+		pagesToProcess = append(pagesToProcess, results...)
 	}
 
-	pagesToProcess, err := locations.GetObjectArray("query", "pages")
-	if err != nil {
+	if query.Err() != nil {
 		return images, err
 	}
 
