@@ -121,7 +121,7 @@ func GetLocations(gameParams GameParams) (locations *Locations, err error) {
 		"action":      "askargs",
 		"conditions":  condition,
 		"printouts":   strings.Join(printouts, "|"),
-		"parameters":  "limit=500",
+		"parameters":  "limit=250",
 		"format":      "json",
 		"api_version": "3",
 	}
