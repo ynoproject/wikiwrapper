@@ -19,6 +19,12 @@ type Location struct {
 	VersionGaps         []string       `json:"versionGaps"`
 }
 
+type Locations struct {
+	Locations   []*Location `json:"locations"`
+	Game        string      `json:"game"`
+	ContinueKey string      `json:"continueKey,omitempty"`
+}
+
 type BGM struct {
 	Path  string `json:"path"`
 	Title string `json:"title"`
@@ -41,6 +47,12 @@ type Connection struct {
 	ChancePercentage  string   `json:"chancePercentage,omitempty"`
 	ChanceDescription string   `json:"chanceDescription,omitempty"`
 	IsRemoved         bool     `json:"isRemoved,omitempty"`
+}
+
+type Connections struct {
+	Connections []*Connection `json:"connections"`
+	Game        string        `json:"game"`
+	ContinueKey string        `json:"continueKey,omitempty"`
 }
 
 type Author struct {
@@ -78,6 +90,12 @@ type LocationImage struct {
 	Title  string   `json:"title"`
 	Game   string   `json:"game"`
 	Images []*Image `json:"images"`
+}
+
+type LocationImages struct {
+	LocationImages []*LocationImage `json:"locationImages"`
+	Game           string           `json:"game"`
+	ContinueKey    string           `json:"continueKey,omitempty"`
 }
 
 type Image struct {

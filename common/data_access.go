@@ -12,7 +12,7 @@ import (
 )
 
 type GameParams struct {
-	GameCode, Protag string
+	GameCode, Protag, ContinueKey string
 }
 
 var gameNames = map[string]string{
@@ -77,7 +77,7 @@ func fetchAllResultsFromSmwQuery(smwQuery *SmwQuery) (results []*jason.Object, e
 	return results, err
 }
 
-func GetLocations(gameParams GameParams) (locations []*Location, err error) {
+func GetLocations(gameParams GameParams) (locations *Locations, err error) {
 	gameName, ok := gameNames[gameParams.GameCode]
 	if !ok {
 		return locations, errors.New("game not supported")
@@ -91,6 +91,10 @@ func GetLocations(gameParams GameParams) (locations []*Location, err error) {
 
 	if hasMultipleProtags && len(gameParams.Protag) == 0 {
 		return locations, errors.New("game has multiple protagonists, please specify one")
+	}
+
+	locations = &Locations{
+		Game: gameParams.GameCode,
 	}
 
 	protagCategory := ""
@@ -114,16 +118,31 @@ func GetLocations(gameParams GameParams) (locations []*Location, err error) {
 	printouts := []string{"Has location image", "Header background color", "Header font color", "Has primary author", "Has contributing author", "Japanese name", "Has BGM", "Has location map", "Version added", "Versions updated", "Version removed", "Version gaps"}
 
 	parameters := params.Values{
+		"action":      "askargs",
 		"conditions":  condition,
 		"printouts":   strings.Join(printouts, "|"),
 		"parameters":  "limit=500",
 		"format":      "json",
 		"api_version": "3",
 	}
-	results := NewSmwQuery(client, parameters)
 
-	locationsToProcess, err := fetchAllResultsFromSmwQuery(results)
+	if gameParams.ContinueKey != "" {
+		offset := fmt.Sprintf("|offset=%s", gameParams.ContinueKey)
+		currentParams := parameters.Get("parameters")
+		parameters.Set("parameters", currentParams+offset)
+	}
 
+	query, err := client.Get(parameters)
+	if err != nil {
+		return locations, err
+	}
+
+	continueKey, err := query.GetNumber("query-continue-offset")
+	if err == nil {
+		locations.ContinueKey = string(continueKey)
+	}
+
+	locationsToProcess, err := query.GetObjectArray("query", "results")
 	if err != nil {
 		return locations, err
 	}
@@ -144,19 +163,22 @@ func GetLocations(gameParams GameParams) (locations []*Location, err error) {
 				return locations, err
 			}
 
-			locations = append(locations, location)
+			locations.Locations = append(locations.Locations, location)
 		}
 	}
 
 	return locations, err
 }
 
-func GetConnections(gameParams GameParams) (connections []*Connection, err error) {
+func GetConnections(gameParams GameParams) (connections *Connections, err error) {
 	gameName, ok := gameNames[gameParams.GameCode]
 	if !ok {
 		return connections, errors.New("game not supported")
 	}
 
+	connections = &Connections{
+		Game: gameParams.GameCode,
+	}
 	protagCategories, hasMultipleProtags := protagCategoriesPerGame[gameParams.GameCode]
 
 	if !hasMultipleProtags && gameParams.Protag != "" {
@@ -188,6 +210,7 @@ func GetConnections(gameParams GameParams) (connections []*Connection, err error
 	printouts := []string{"Connection/Origin", "Connection/Location", "Connection/Attribute", "Connection/Unlock conditions", "Connection/Effects needed", "Connection/Season available", "Connection/Chance percentage", "Connection/Chance description", "Connection/Is removed"}
 
 	parameters := params.Values{
+		"action":      "askargs",
 		"conditions":  strings.Join(conditions, "|"),
 		"printouts":   strings.Join(printouts, "|"),
 		"parameters":  "limit=500",
@@ -195,9 +218,23 @@ func GetConnections(gameParams GameParams) (connections []*Connection, err error
 		"api_version": "3",
 	}
 
-	results := NewSmwQuery(client, parameters)
+	if gameParams.ContinueKey != "" {
+		offset := fmt.Sprintf("|offset=%s", gameParams.ContinueKey)
+		currentParams := parameters.Get("parameters")
+		parameters.Set("parameters", currentParams+offset)
+	}
 
-	connectionsToProcess, err := fetchAllResultsFromSmwQuery(results)
+	query, err := client.Get(parameters)
+	if err != nil {
+		return connections, err
+	}
+
+	continueKey, err := query.GetNumber("query-continue-offset")
+	if err == nil {
+		connections.ContinueKey = string(continueKey)
+	}
+
+	connectionsToProcess, err := query.GetObjectArray("query", "results")
 	if err != nil {
 		return connections, err
 	}
@@ -218,7 +255,7 @@ func GetConnections(gameParams GameParams) (connections []*Connection, err error
 				return connections, err
 			}
 
-			connections = append(connections, connection)
+			connections.Connections = append(connections.Connections, connection)
 		}
 	}
 
@@ -391,22 +428,28 @@ func GetVendingMachines(gameCode string) (vendingMachines []*VendingMachine, err
 	return vendingMachines, err
 }
 
-func GetImages(gameCode string) (images []*LocationImage, err error) {
-	images = []*LocationImage{}
-	gameName, ok := gameNames[gameCode]
+func GetImages(gameParams GameParams) (images *LocationImages, err error) {
+	gameName, ok := gameNames[gameParams.GameCode]
 	if !ok {
 		return images, errors.New("game not supported")
 	}
+	images = &LocationImages{
+		Game: gameParams.GameCode,
+	}
+
 	parameters := params.Values{
-		"format":       "json",
-		"prop":         "",
-		"list":         "",
-		"meta":         "",
-		"generator":    "categorymembers",
-		"gcmtitle":     fmt.Sprintf("Category:%s Locations", gameName),
-		"gcmnamespace": namespaceNumbers[gameCode],
-		"gcmtype":      "page|file",
-		"gcmlimit":     "max",
+		"action":      "query",
+		"format":      "json",
+		"list":        "categorymembers",
+		"cmtitle":     fmt.Sprintf("Category:%s Locations", gameName),
+		"cmprop":      "title",
+		"cmnamespace": namespaceNumbers[gameParams.GameCode],
+		"cmlimit":     "50",
+	}
+
+	if gameParams.ContinueKey != "" {
+		parameters.Set("continue", "-||")
+		parameters.Set("cmcontinue", gameParams.ContinueKey)
 	}
 
 	client, err := createClient()
@@ -414,21 +457,18 @@ func GetImages(gameCode string) (images []*LocationImage, err error) {
 		return images, err
 	}
 
-	query := client.NewQuery(parameters)
-	pagesToProcess := []*jason.Object{}
-	for query.Next() {
-		locations := query.Resp()
-		results, err := locations.GetObjectArray("query", "pages")
-		if err != nil {
-			return images, err
-		}
-
-		pagesToProcess = append(pagesToProcess, results...)
-	}
-
-	if query.Err() != nil {
+	query, err := client.Get(parameters)
+	if err != nil {
 		return images, err
 	}
+	fmt.Println(query)
+
+	continueKey, err := query.GetString("continue", "cmcontinue")
+	if err == nil {
+		images.ContinueKey = continueKey
+	}
+
+	pagesToProcess, err := query.GetObjectArray("query", "categorymembers")
 
 	for _, pageToProcess := range pagesToProcess {
 		pageTitle, err := pageToProcess.GetString("title")
@@ -439,7 +479,7 @@ func GetImages(gameCode string) (images []*LocationImage, err error) {
 		title := strings.Split(pageTitle, ":")[1]
 		pageImage := &LocationImage{
 			Title: title,
-			Game:  gameCode,
+			Game:  gameParams.GameCode,
 		}
 
 		parameters := params.Values{
@@ -464,7 +504,6 @@ func GetImages(gameCode string) (images []*LocationImage, err error) {
 		}
 
 		for _, pageImageToProcess := range pageImagesToProcess {
-
 			imageInfoToProcess, err := pageImageToProcess.GetObjectArray("imageinfo")
 			if err != nil {
 				continue
@@ -493,7 +532,7 @@ func GetImages(gameCode string) (images []*LocationImage, err error) {
 				})
 			}
 		}
-		images = append(images, pageImage)
+		images.LocationImages = append(images.LocationImages, pageImage)
 	}
 	return images, err
 }
@@ -798,7 +837,6 @@ func processConnection(gameCode string, value *jason.Object) (connection *Connec
 		log.Print("SERVER", "isRemoved", err.Error())
 		return connection, err
 	}
-	fmt.Println(isRemoved)
 
 	connection = &Connection{
 		Game:        gameCode,

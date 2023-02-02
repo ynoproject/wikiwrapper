@@ -5,7 +5,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 
 	"github.com/ynoproject/wikiwrapper/common"
 )
@@ -22,18 +21,18 @@ func Init() {
 }
 
 func getListener() net.Listener {
-	os.Remove("sockets/wikiwrapper.sock")
+	// os.Remove("sockets/wikiwrapper.sock")
 
-	listener, err := net.Listen("unix", "sockets/wikiwrapper.sock")
+	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatal(err)
 		return nil
 	}
 
-	if err := os.Chmod("sockets/wikiwrapper.sock", 0666); err != nil {
-		log.Fatal(err)
-		return nil
-	}
+	// if err := os.Chmod("sockets/wikiwrapper.sock", 0666); err != nil {
+	// 	log.Fatal(err)
+	// 	return nil
+	// }
 	return listener
 }
 
@@ -56,6 +55,11 @@ func handleLocations(w http.ResponseWriter, r *http.Request) {
 	gameParams := common.GameParams{GameCode: gameParam}
 	if protagParam != "" {
 		gameParams.Protag = protagParam
+	}
+
+	continueKeyParam := r.URL.Query().Get("continueKey")
+	if continueKeyParam != "" {
+		gameParams.ContinueKey = continueKeyParam
 	}
 
 	locations, err := common.GetLocations(gameParams)
@@ -82,7 +86,13 @@ func handleImages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	images, err := common.GetImages(gameParam)
+	gameParams := common.GameParams{GameCode: gameParam}
+	continueKeyParam := r.URL.Query().Get("continueKey")
+	if continueKeyParam != "" {
+		gameParams.ContinueKey = continueKeyParam
+	}
+
+	images, err := common.GetImages(gameParams)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -110,6 +120,11 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	gameParams := common.GameParams{GameCode: gameParam}
 	if protagParam != "" {
 		gameParams.Protag = protagParam
+	}
+
+	continueKeyParam := r.URL.Query().Get("continueKey")
+	if continueKeyParam != "" {
+		gameParams.ContinueKey = continueKeyParam
 	}
 
 	connections, err := common.GetConnections(gameParams)
