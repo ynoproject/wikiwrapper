@@ -40,7 +40,7 @@ type Connection struct {
 	SeasonAvailable   string   `json:"seasonAvailable,omitempty"`
 	ChancePercentage  string   `json:"chancePercentage,omitempty"`
 	ChanceDescription string   `json:"chanceDescription,omitempty"`
-	IsRemoved         bool     `json:"isRemoved"`
+	IsRemoved         bool     `json:"isRemoved,omitempty"`
 }
 
 type Author struct {

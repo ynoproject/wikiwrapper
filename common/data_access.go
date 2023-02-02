@@ -807,12 +807,8 @@ func processConnection(gameCode string, value *jason.Object) (connection *Connec
 		Attributes:  attributes,
 	}
 
-	if len(isRemoved) > 0 {
-		if isRemoved[0] == "t" {
-			connection.IsRemoved = true
-		} else {
-			connection.IsRemoved = false
-		}
+	if len(isRemoved) > 0 && isRemoved[0] == "t" {
+		connection.IsRemoved = true
 	}
 
 	if len(unlockConditions) > 0 {
