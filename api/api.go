@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/ynoproject/wikiwrapper/common"
 )
@@ -21,18 +22,18 @@ func Init() {
 }
 
 func getListener() net.Listener {
-	// os.Remove("sockets/wikiwrapper.sock")
+	os.Remove("sockets/wikiwrapper.sock")
 
-	listener, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("unix", "sockets/wikiwrapper.sock")
 	if err != nil {
 		log.Fatal(err)
 		return nil
 	}
 
-	// if err := os.Chmod("sockets/wikiwrapper.sock", 0666); err != nil {
-	// 	log.Fatal(err)
-	// 	return nil
-	// }
+	if err := os.Chmod("sockets/wikiwrapper.sock", 0666); err != nil {
+		log.Fatal(err)
+		return nil
+	}
 	return listener
 }
 
