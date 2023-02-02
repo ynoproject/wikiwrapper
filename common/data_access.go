@@ -185,7 +185,7 @@ func GetConnections(gameParams GameParams) (connections []*Connection, err error
 	if protagCategory != "" {
 		conditions = append(conditions, fmt.Sprintf("-Has subobject::<q>[[%s]]</q>", protagCategory))
 	}
-	printouts := []string{"Connection/Origin", "Connection/Location", "Connection/Attribute", "Connection/Unlock conditions", "Connection/Effects needed", "Connection/Season available", "Connection/Chance percentage", "Connection/Chance description"}
+	printouts := []string{"Connection/Origin", "Connection/Location", "Connection/Attribute", "Connection/Unlock conditions", "Connection/Effects needed", "Connection/Season available", "Connection/Chance percentage", "Connection/Chance description", "Connection/Is removed"}
 
 	parameters := params.Values{
 		"conditions":  strings.Join(conditions, "|"),
@@ -452,7 +452,7 @@ func GetImages(gameCode string) (images []*LocationImage, err error) {
 			"iiprop":    "size|url",
 			"gimlimit":  "max",
 		}
-		
+
 		results, err := client.Get(parameters)
 		if err != nil {
 			return images, err
@@ -793,11 +793,26 @@ func processConnection(gameCode string, value *jason.Object) (connection *Connec
 		return connection, err
 	}
 
+	isRemoved, err := printouts.GetStringArray("Connection/Is removed")
+	if err != nil {
+		log.Print("SERVER", "isRemoved", err.Error())
+		return connection, err
+	}
+	fmt.Println(isRemoved)
+
 	connection = &Connection{
 		Game:        gameCode,
 		Origin:      origin,
 		Destination: destination,
 		Attributes:  attributes,
+	}
+
+	if len(isRemoved) > 0 {
+		if isRemoved[0] == "t" {
+			connection.IsRemoved = true
+		} else {
+			connection.IsRemoved = false
+		}
 	}
 
 	if len(unlockConditions) > 0 {
