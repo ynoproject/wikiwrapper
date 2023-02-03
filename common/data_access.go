@@ -511,26 +511,44 @@ func GetImages(gameParams GameParams) (images *LocationImages, err error) {
 			}
 
 			for _, imageInfo := range imageInfoToProcess {
-				url, err := imageInfo.GetString("thumburl")
+				image := &Image{}
+				url, err := imageInfo.GetString("url")
 				if err != nil {
 					return images, err
 				}
 
-				width, err := imageInfo.GetNumber("thumbwidth")
+				width, err := imageInfo.GetNumber("width")
 				if err != nil {
 					return images, err
 				}
 
-				height, err := imageInfo.GetNumber("thumbheight")
+				height, err := imageInfo.GetNumber("height")
 				if err != nil {
 					return images, err
 				}
 
-				pageImage.Images = append(pageImage.Images, &Image{
-					Url:    url,
-					Width:  width,
-					Height: height,
-				})
+				thumburl, err := imageInfo.GetString("thumburl")
+				if err == nil {
+					image.Url = thumburl
+				} else {
+					image.Url = url
+				}
+
+				thumbwidth, err := imageInfo.GetNumber("thumbwidth")
+				if err == nil {
+					image.Width = thumbwidth
+				} else {
+					image.Width = width
+				}
+
+				thumbheight, err := imageInfo.GetNumber("thumbheight")
+				if err == nil {
+					image.Height = thumbheight
+				} else {
+					image.Height = height
+				}
+
+				pageImage.Images = append(pageImage.Images, image)
 			}
 		}
 		images.LocationImages = append(images.LocationImages, pageImage)
