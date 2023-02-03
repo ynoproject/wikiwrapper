@@ -461,7 +461,6 @@ func GetImages(gameParams GameParams) (images *LocationImages, err error) {
 	if err != nil {
 		return images, err
 	}
-	fmt.Println(query)
 
 	continueKey, err := query.GetString("continue", "cmcontinue")
 	if err == nil {
@@ -483,14 +482,16 @@ func GetImages(gameParams GameParams) (images *LocationImages, err error) {
 		}
 
 		parameters := params.Values{
-			"action":    "query",
-			"format":    "json",
-			"prop":      "imageinfo",
-			"list":      "",
-			"titles":    pageTitle,
-			"generator": "images",
-			"iiprop":    "size|url",
-			"gimlimit":  "max",
+			"action":      "query",
+			"format":      "json",
+			"prop":        "imageinfo",
+			"list":        "",
+			"titles":      pageTitle,
+			"generator":   "images",
+			"iiprop":      "size|url",
+			"iiurlwidth":  "320",
+			"iiurlheight": "240",
+			"gimlimit":    "max",
 		}
 
 		results, err := client.Get(parameters)
@@ -510,17 +511,17 @@ func GetImages(gameParams GameParams) (images *LocationImages, err error) {
 			}
 
 			for _, imageInfo := range imageInfoToProcess {
-				url, err := imageInfo.GetString("url")
+				url, err := imageInfo.GetString("thumburl")
 				if err != nil {
 					return images, err
 				}
 
-				width, err := imageInfo.GetNumber("width")
+				width, err := imageInfo.GetNumber("thumbwidth")
 				if err != nil {
 					return images, err
 				}
 
-				height, err := imageInfo.GetNumber("height")
+				height, err := imageInfo.GetNumber("thumbheight")
 				if err != nil {
 					return images, err
 				}
