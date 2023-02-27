@@ -28,6 +28,7 @@ var gameNames = map[string]string{
 	"cu":          "Collective Unconscious",
 	"muma":        "Muma Rope",
 	"genie":       "Dream Genie",
+	"mikan":       "Mikan Muzou",
 }
 
 var namespaceNumbers = map[string]string{
@@ -43,6 +44,7 @@ var namespaceNumbers = map[string]string{
 	"cu":          "3018",
 	"muma":        "3020",
 	"genie":       "3022",
+	"mikan":       "3024",
 }
 
 var protagCategoriesPerGame = map[string]map[string]string{
