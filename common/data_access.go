@@ -26,9 +26,11 @@ var gameNames = map[string]string{
 	"unevendream": "Uneven Dream",
 	"braingirl":   "Braingirl",
 	"cu":          "Collective Unconscious",
+	"cerasus":     "Cerasus",
 	"muma":        "Muma Rope",
 	"genie":       "Dream Genie",
 	"mikan":       "Mikan Muzou",
+	"ultraviolet": "Ultra Violet",
 }
 
 var namespaceNumbers = map[string]string{
@@ -42,9 +44,11 @@ var namespaceNumbers = map[string]string{
 	"unevendream": "3014",
 	"braingirl":   "3016",
 	"cu":          "3018",
-	"muma":        "3020",
-	"genie":       "3022",
-	"mikan":       "3024",
+	"cerasus":     "3020",
+	"muma":        "3022",
+	"genie":       "3026",
+	"mikan":       "3028",
+	"ultraviolet": "3030",
 }
 
 var protagCategoriesPerGame = map[string]map[string]string{
