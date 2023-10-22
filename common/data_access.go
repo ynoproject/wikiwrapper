@@ -31,6 +31,7 @@ var gameNames = map[string]string{
 	"genie":       "Dream Genie",
 	"mikan":       "Mikan Muzou",
 	"ultraviolet": "Ultra Violet",
+	"sheawaits":   "She Awaits"
 }
 
 var namespaceNumbers = map[string]string{
@@ -49,6 +50,7 @@ var namespaceNumbers = map[string]string{
 	"genie":       "3026",
 	"mikan":       "3028",
 	"ultraviolet": "3030",
+	"sheawaits":   "3032"
 }
 
 var protagCategoriesPerGame = map[string]map[string]string{
