@@ -33,6 +33,7 @@ var gameNames = map[string]string{
 	"ultraviolet": "Ultra Violet",
 	"sheawaits":   "She Awaits",
 	"oversomnia":  "Oversomnia",
+	"tagai":       "Yume Tagai",
 }
 
 var namespaceNumbers = map[string]string{
@@ -53,12 +54,17 @@ var namespaceNumbers = map[string]string{
 	"ultraviolet": "3030",
 	"sheawaits":   "3032",
 	"oversomnia":  "3034",
+	"tagai":       "3036",
 }
 
 var protagCategoriesPerGame = map[string]map[string]string{
 	"unevendream": {
 		"kubotsuki":  "Category:Kubotsuki's Worlds",
 		"totsutsuki": "Category:Totsutsuki's Worlds",
+	},
+	"tagai": {
+		"makitsuki":  "Category:Makitsuki's Worlds",
+		"sakiyuki": "Category:Sakiyuki's Worlds",
 	},
 }
 
