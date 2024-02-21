@@ -1,6 +1,6 @@
 module github.com/ynoproject/wikiwrapper
 
-go 1.19
+go 1.22
 
 require (
 	cgt.name/pkg/go-mwclient v1.2.0
