@@ -22,18 +22,19 @@ func Init() {
 }
 
 func getListener() net.Listener {
-	os.Remove("sockets/wikiwrapper.sock")
+	os.Remove("/run/wikiwrapper/wikiwrapper.sock")
 
-	listener, err := net.Listen("unix", "sockets/wikiwrapper.sock")
+	listener, err := net.Listen("unix", "/run/wikiwrapper/wikiwrapper.sock")
 	if err != nil {
 		log.Fatal(err)
 		return nil
 	}
 
-	if err := os.Chmod("sockets/wikiwrapper.sock", 0666); err != nil {
+	if err := os.Chmod("/run/wikiwrapper/wikiwrapper.sock", 0666); err != nil {
 		log.Fatal(err)
 		return nil
 	}
+
 	return listener
 }
 
