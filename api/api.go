@@ -34,6 +34,7 @@ func getListener() net.Listener {
 		log.Fatal(err)
 		return nil
 	}
+
 	return listener
 }
 
@@ -64,7 +65,6 @@ func handleLocations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	locations, err := common.GetLocations(gameParams)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -94,7 +94,6 @@ func handleImages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	images, err := common.GetImages(gameParams)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -145,18 +144,18 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
 func handleAuthors(w http.ResponseWriter, r *http.Request) {
 	enableCors(w, r)
-	gameParam, ok := r.URL.Query()["game"]
-	if !ok || len(gameParam) == 0 {
+	gameParam := r.URL.Query().Get("game")
+	if len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
 		return
 	}
 
-	if (gameParam[0] != "2kki") && (gameParam[0] != "unevendream") {
+	if (gameParam != "2kki") && (gameParam != "unevendream") {
 		http.Error(w, "game not supported", http.StatusBadRequest)
 		return
 	}
 
-	authors, err := common.GetAuthors(gameParam[0])
+	authors, err := common.GetAuthors(gameParam)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -173,19 +172,19 @@ func handleAuthors(w http.ResponseWriter, r *http.Request) {
 
 func handleMaps(w http.ResponseWriter, r *http.Request) {
 	enableCors(w, r)
-	gameParam, ok := r.URL.Query()["game"]
-	if !ok || len(gameParam) == 0 {
+	gameParam := r.URL.Query().Get("game")
+	if len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
 		return
 	}
 
-	locationParam, ok := r.URL.Query()["location"]
-	if !ok || len(locationParam) == 0 {
+	locationParam := r.URL.Query().Get("location")
+	if len(locationParam) == 0 {
 		http.Error(w, "location not specified", http.StatusBadRequest)
 		return
 	}
 
-	maps, err := common.GetMaps(gameParam[0], locationParam[0])
+	maps, err := common.GetMaps(gameParam, locationParam)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -202,13 +201,13 @@ func handleMaps(w http.ResponseWriter, r *http.Request) {
 
 func handleVendingMachines(w http.ResponseWriter, r *http.Request) {
 	enableCors(w, r)
-	gameParam, ok := r.URL.Query()["game"]
-	if !ok || len(gameParam) == 0 {
+	gameParam := r.URL.Query().Get("game")
+	if len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
 		return
 	}
 
-	vms, err := common.GetVendingMachines(gameParam[0])
+	vms, err := common.GetVendingMachines(gameParam)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
