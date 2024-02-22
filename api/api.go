@@ -37,15 +37,15 @@ func getListener() net.Listener {
 	return listener
 }
 
-func enableCors(w *http.ResponseWriter, r *http.Request) {
+func enableCors(w http.ResponseWriter, r *http.Request) {
 	switch origin := r.Header.Get("Origin"); origin {
 	case "https://ynoproject.net", "https://2kki.app":
-		(*w).Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Origin", origin)
 	}
 }
 
 func handleLocations(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w, r)
+	enableCors(w, r)
 	gameParam := r.URL.Query().Get("game")
 	if gameParam == "" {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -80,7 +80,7 @@ func handleLocations(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleImages(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w, r)
+	enableCors(w, r)
 	gameParam := r.URL.Query().Get("game")
 	if gameParam == "" {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -110,7 +110,7 @@ func handleImages(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w, r)
+	enableCors(w, r)
 	gameParam := r.URL.Query().Get("game")
 	if gameParam == "" {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -144,7 +144,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleAuthors(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w, r)
+	enableCors(w, r)
 	gameParam, ok := r.URL.Query()["game"]
 	if !ok || len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -172,7 +172,7 @@ func handleAuthors(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMaps(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w, r)
+	enableCors(w, r)
 	gameParam, ok := r.URL.Query()["game"]
 	if !ok || len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -201,7 +201,7 @@ func handleMaps(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleVendingMachines(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w, r)
+	enableCors(w, r)
 	gameParam, ok := r.URL.Query()["game"]
 	if !ok || len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
