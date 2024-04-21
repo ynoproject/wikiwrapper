@@ -35,6 +35,7 @@ var gameNames = map[string]string{
 	"oversomnia":  "Oversomnia",
 	"tagai":       "Yume Tagai",
 	"tsushin":     "Yume Tsushin",
+	"nostalgic":   "NostAlgic"
 }
 
 var namespaceNumbers = map[string]string{
@@ -57,6 +58,7 @@ var namespaceNumbers = map[string]string{
 	"oversomnia":  "3034",
 	"tagai":       "3036",
 	"tsushin":     "3038",
+	"nostalgic":   "3040"
 }
 
 var protagCategoriesPerGame = map[string]map[string]string{
