@@ -35,7 +35,7 @@ var gameNames = map[string]string{
 	"oversomnia":  "Oversomnia",
 	"tagai":       "Yume Tagai",
 	"tsushin":     "Yume Tsushin",
-	"nostalgic":   "NostAlgic"
+	"nostalgic":   "NostAlgic",
 }
 
 var namespaceNumbers = map[string]string{
