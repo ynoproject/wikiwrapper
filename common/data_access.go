@@ -635,7 +635,7 @@ func processLocation(gameCode string, value *jason.Object) (location *Location, 
 	}
 
 	if len(primaryAuthor) > 0 {
-		location.PrimaryAuthor = primaryAuthor[0]
+		location.PrimaryAuthor = strings.Join(primaryAuthor, ", ")
 	}
 
 	contributingAuthors, err := printouts.GetStringArray("Has contributing author")
