@@ -36,6 +36,7 @@ var gameNames = map[string]string{
 	"tagai":       "Yume Tagai",
 	"tsushin":     "Yume Tsushin",
 	"nostalgic":   "NostAlgic",
+	"if":          "If",
 }
 
 var namespaceNumbers = map[string]string{
@@ -59,6 +60,7 @@ var namespaceNumbers = map[string]string{
 	"tagai":       "3036",
 	"tsushin":     "3038",
 	"nostalgic":   "3040",
+	"if":          "3042",
 }
 
 var protagCategoriesPerGame = map[string]map[string]string{
