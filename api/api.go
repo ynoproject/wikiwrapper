@@ -76,6 +76,7 @@ func handleLocations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(locationsJson)
 }
 
@@ -105,6 +106,7 @@ func handleImages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(imagesJson)
 }
 
@@ -139,6 +141,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(connectionsJson)
 }
 
@@ -167,6 +170,7 @@ func handleAuthors(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(authorsJson)
 }
 
@@ -196,6 +200,7 @@ func handleMaps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(mapsJson)
 }
 
@@ -219,5 +224,6 @@ func handleVendingMachines(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(vmsJson)
 }
