@@ -1,9 +1,11 @@
 package common
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"cgt.name/pkg/go-mwclient"
@@ -69,8 +71,8 @@ var protagCategoriesPerGame = map[string]map[string]string{
 		"totsutsuki": "Category:Totsutsuki's Worlds",
 	},
 	"tagai": {
-		"makitsuki":  "Category:Makitsuki's Worlds",
-		"sakiyuki": "Category:Sakiyuki's Worlds",
+		"makitsuki": "Category:Makitsuki's Worlds",
+		"sakiyuki":  "Category:Sakiyuki's Worlds",
 	},
 }
 
@@ -137,7 +139,7 @@ func GetLocations(gameParams GameParams) (locations *Locations, err error) {
 	if protagCategory != "" {
 		condition += "|" + protagCategory
 	}
-	printouts := []string{"Has location image", "Header background color", "Header font color", "Has primary author", "Has contributing author", "Japanese name", "Has BGM", "Has location map", "Version added", "Versions updated", "Version removed", "Version gaps"}
+	printouts := []string{"Has location image", "Header background color", "Header font color", "Has primary author", "Has contributing author", "Japanese name", "Has BGM", "Map IDs", "Has location map", "Version added", "Versions updated", "Version removed", "Version gaps"}
 
 	parameters := params.Values{
 		"action":      "askargs",
@@ -685,6 +687,21 @@ func processLocation(gameCode string, value *jason.Object) (location *Location, 
 		location.VersionRemoved = versionRemoved[0]
 	}
 
+	mapIdObjects, err := printouts.GetObjectArray("Map IDs")
+	if err != nil {
+		log.Print("SERVER", "mapIds", err.Error())
+		return nil, err
+	}
+
+	mapIds, err := processMapIdInfo(mapIdObjects)
+	if err != nil {
+		log.Print(title)
+		log.Print("SERVER", "mapIds", err.Error())
+		return nil, err
+	}
+
+	location.MapIds = mapIds
+
 	versionGaps, err := printouts.GetStringArray("Version gaps")
 	if err != nil {
 		log.Print("SERVER", "versionGaps", err.Error())
@@ -726,6 +743,31 @@ func processLocation(gameCode string, value *jason.Object) (location *Location, 
 	}
 
 	return location, err
+}
+
+func processMapIdInfo(mapIdObjects []*jason.Object) (mapIds []int, err error) {
+	mapIds = []int{}
+	for _, info := range mapIdObjects {
+		var mapId json.Number
+		outputMapId, err := info.GetNumberArray("Has map ID", "item")
+
+		if err != nil {
+			log.Print("SERVER", "mapId", err.Error())
+			return mapIds, err
+		}
+
+		if len(outputMapId) > 0 {
+			mapId = outputMapId[0]
+		}
+
+		data := mapId.String()
+
+		if id, err := strconv.Atoi(data); err == nil {
+			mapIds = append(mapIds, id)
+		}
+	}
+
+	return mapIds, nil
 }
 
 func processBGMs(bgmObjects []*jason.Object) (bgms []*BGM, err error) {

@@ -17,6 +17,7 @@ type Location struct {
 	VersionsUpdated     []string       `json:"versionsUpdated"`
 	VersionRemoved      string         `json:"versionRemoved,omitempty"`
 	VersionGaps         []string       `json:"versionGaps"`
+	MapIds              []int          `json:"mapIds"`
 }
 
 type Locations struct {

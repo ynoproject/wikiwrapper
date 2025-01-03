@@ -153,7 +153,7 @@ func handleAuthors(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (gameParam != "2kki") && (gameParam != "unevendream") {
+	if (gameParam != "2kki") && (gameParam != "unevendream") && (gameParam != "unconscious") {
 		http.Error(w, "game not supported", http.StatusBadRequest)
 		return
 	}
