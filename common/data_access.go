@@ -299,7 +299,7 @@ func GetAuthors(gameCode string) (authors []*Author, err error) {
 
 	conditions := fmt.Sprintf("-Has subobject::%s:Authors", gameName)
 	printouts := []string{"Author/Name", "Author/Original Name"}
-	queryParams := []string{"sort=Author/Date Joined", "order=asc", "limit=500"}
+	queryParams := []string{"sort=Author/Name", "order=asc", "limit=500"}
 
 	parameters := params.Values{
 		"conditions":  conditions,
