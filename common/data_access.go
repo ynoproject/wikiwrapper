@@ -39,6 +39,7 @@ var gameNames = map[string]string{
 	"tsushin":     "Yume Tsushin",
 	"nostalgic":   "NostAlgic",
 	"if":          "If",
+	"unaccomplished": "Unaccomplished",
 }
 
 var namespaceNumbers = map[string]string{
@@ -63,6 +64,7 @@ var namespaceNumbers = map[string]string{
 	"tsushin":     "3038",
 	"nostalgic":   "3040",
 	"if":          "3042",
+	"unaccomplished": "3044",
 }
 
 var protagCategoriesPerGame = map[string]map[string]string{
