@@ -1,0 +1,7 @@
+origins:
+  - origin: "https://2kki.app"
+    methods:
+      - "GET"
+  - origin: "https://ynoproject.net"
+    methods:
+      - "GET"

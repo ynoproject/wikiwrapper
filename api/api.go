@@ -8,9 +8,21 @@ import (
 	"os"
 
 	"github.com/ynoproject/wikiwrapper/common"
+	"github.com/ynoproject/wikiwrapper/setup"
 )
 
 func Init() {
+	corsConfig, err := setup.LoadCorsConfig("cors_config.yml")
+	if err != nil {
+		log.Fatalf("Error loading CORS config: %v", err)
+	}
+
+	wikiConfig, err := setup.LoadWikiConfig("wiki_config.yml")
+	if err != nil {
+		log.Println(wikiConfig.Games)
+		log.Fatalf("Error loading wiki config: %v", err)
+	}
+
 	http.HandleFunc("/locations", handleLocations)
 	http.HandleFunc("/connections", handleConnections)
 	http.HandleFunc("/authors", handleAuthors)
@@ -18,7 +30,11 @@ func Init() {
 	http.HandleFunc("/vms", handleVendingMachines)
 	http.HandleFunc("/images", handleImages)
 
-	http.Serve(getListener(), nil)
+	configMiddleware := setup.WikiConfigHandlerMiddleware(wikiConfig)
+	corsHandler := setup.CorsHandlerMiddleware(corsConfig)
+	handler := configMiddleware(corsHandler)
+
+	http.Serve(getListener(), handler)
 }
 
 func getListener() net.Listener {
@@ -38,15 +54,8 @@ func getListener() net.Listener {
 	return listener
 }
 
-func enableCors(w http.ResponseWriter, r *http.Request) {
-	switch origin := r.Header.Get("Origin"); origin {
-	case "https://ynoproject.net", "https://2kki.app":
-		w.Header().Set("Access-Control-Allow-Origin", origin)
-	}
-}
-
 func handleLocations(w http.ResponseWriter, r *http.Request) {
-	enableCors(w, r)
+	config := r.Context().Value(setup.ConfigKey).(setup.WikiConfig)
 	gameParam := r.URL.Query().Get("game")
 	if gameParam == "" {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -64,7 +73,7 @@ func handleLocations(w http.ResponseWriter, r *http.Request) {
 		gameParams.ContinueKey = continueKeyParam
 	}
 
-	locations, err := common.GetLocations(gameParams)
+	locations, err := common.GetLocations(gameParams, config)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -81,7 +90,7 @@ func handleLocations(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleImages(w http.ResponseWriter, r *http.Request) {
-	enableCors(w, r)
+	config := r.Context().Value(setup.ConfigKey).(setup.WikiConfig)
 	gameParam := r.URL.Query().Get("game")
 	if gameParam == "" {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -94,7 +103,7 @@ func handleImages(w http.ResponseWriter, r *http.Request) {
 		gameParams.ContinueKey = continueKeyParam
 	}
 
-	images, err := common.GetImages(gameParams)
+	images, err := common.GetImages(gameParams, config)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -111,7 +120,7 @@ func handleImages(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
-	enableCors(w, r)
+	config := r.Context().Value(setup.ConfigKey).(setup.WikiConfig)
 	gameParam := r.URL.Query().Get("game")
 	if gameParam == "" {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -129,7 +138,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		gameParams.ContinueKey = continueKeyParam
 	}
 
-	connections, err := common.GetConnections(gameParams)
+	connections, err := common.GetConnections(gameParams, config)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -146,7 +155,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleAuthors(w http.ResponseWriter, r *http.Request) {
-	enableCors(w, r)
+	config := r.Context().Value(setup.ConfigKey).(setup.WikiConfig)
 	gameParam := r.URL.Query().Get("game")
 	if len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -158,7 +167,7 @@ func handleAuthors(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authors, err := common.GetAuthors(gameParam)
+	authors, err := common.GetAuthors(gameParam, config)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -175,7 +184,7 @@ func handleAuthors(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMaps(w http.ResponseWriter, r *http.Request) {
-	enableCors(w, r)
+	config := r.Context().Value(setup.ConfigKey).(setup.WikiConfig)
 	gameParam := r.URL.Query().Get("game")
 	if len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
@@ -188,7 +197,7 @@ func handleMaps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	maps, err := common.GetMaps(gameParam, locationParam)
+	maps, err := common.GetMaps(gameParam, locationParam, config)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -205,14 +214,14 @@ func handleMaps(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleVendingMachines(w http.ResponseWriter, r *http.Request) {
-	enableCors(w, r)
+	config := r.Context().Value(setup.ConfigKey).(setup.WikiConfig)
 	gameParam := r.URL.Query().Get("game")
 	if len(gameParam) == 0 {
 		http.Error(w, "game not specified", http.StatusBadRequest)
 		return
 	}
 
-	vms, err := common.GetVendingMachines(gameParam)
+	vms, err := common.GetVendingMachines(gameParam, config)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -11,71 +11,11 @@ import (
 	"cgt.name/pkg/go-mwclient"
 	"cgt.name/pkg/go-mwclient/params"
 	"github.com/antonholmquist/jason"
+	"github.com/ynoproject/wikiwrapper/setup"
 )
 
 type GameParams struct {
 	GameCode, Protag, ContinueKey string
-}
-
-var gameNames = map[string]string{
-	"yume":        "Yume Nikki",
-	"2kki":        "Yume 2kki",
-	"flow":        "Dotflow",
-	"someday":     "Someday",
-	"deepdreams":  "Deep Dreams",
-	"prayers":     "Answered Prayers",
-	"amillusion":  "Amillusion",
-	"unevendream": "Uneven Dream",
-	"braingirl":   "Braingirl",
-	"unconscious": "Collective Unconscious",
-	"cerasus":     "Cerasus",
-	"muma":        "Muma Rope",
-	"genie":       "Dream Genie",
-	"mikan":       "Mikan Muzou",
-	"ultraviolet": "Ultra Violet",
-	"sheawaits":   "She Awaits",
-	"oversomnia":  "Oversomnia",
-	"tagai":       "Yume Tagai",
-	"tsushin":     "Yume Tsushin",
-	"nostalgic":   "NostAlgic",
-	"if":          "If",
-	"unaccomplished": "Unaccomplished",
-}
-
-var namespaceNumbers = map[string]string{
-	"yume":        "3000",
-	"2kki":        "3002",
-	"flow":        "3004",
-	"someday":     "3006",
-	"deepdreams":  "3008",
-	"prayers":     "3010",
-	"amillusion":  "3012",
-	"unevendream": "3014",
-	"braingirl":   "3016",
-	"unconscious": "3018",
-	"cerasus":     "3020",
-	"muma":        "3022",
-	"genie":       "3026",
-	"mikan":       "3028",
-	"ultraviolet": "3030",
-	"sheawaits":   "3032",
-	"oversomnia":  "3034",
-	"tagai":       "3036",
-	"tsushin":     "3038",
-	"nostalgic":   "3040",
-	"if":          "3042",
-	"unaccomplished": "3044",
-}
-
-var protagCategoriesPerGame = map[string]map[string]string{
-	"unevendream": {
-		"kubotsuki":  "Category:Kubotsuki's Worlds",
-		"totsutsuki": "Category:Totsutsuki's Worlds",
-	},
-	"tagai": {
-		"makitsuki": "Category:Makitsuki's Worlds",
-		"sakiyuki":  "Category:Sakiyuki's Worlds",
-	},
 }
 
 func createClient() (client *mwclient.Client, err error) {
@@ -103,20 +43,25 @@ func fetchAllResultsFromSmwQuery(smwQuery *SmwQuery) (results []*jason.Object, e
 	return results, err
 }
 
-func GetLocations(gameParams GameParams) (locations *Locations, err error) {
-	gameName, ok := gameNames[gameParams.GameCode]
+func GetLocations(gameParams GameParams, wikiConfig setup.WikiConfig) (locations *Locations, err error) {
+	game, ok := wikiConfig.Games[gameParams.GameCode]
 	if !ok {
 		return locations, errors.New("game not supported")
 	}
 
-	protagCategories, hasMultipleProtags := protagCategoriesPerGame[gameParams.GameCode]
+	protagCategories := game.Protagonists
+	hasMultipleProtags := len(protagCategories) > 0
 
 	if !hasMultipleProtags && gameParams.Protag != "" {
 		return locations, errors.New("game has only one protagonist")
 	}
 
 	if hasMultipleProtags && len(gameParams.Protag) == 0 {
-		return locations, errors.New("game has multiple protagonists, please specify one")
+		acceptedProtags := make([]string, 0, len(protagCategories))
+		for protag := range protagCategories {
+			acceptedProtags = append(acceptedProtags, protag)
+		}
+		return locations, fmt.Errorf("game has multiple protagonists, please specify one (accepted values are: %v)", acceptedProtags)
 	}
 
 	locations = &Locations{
@@ -128,7 +73,11 @@ func GetLocations(gameParams GameParams) (locations *Locations, err error) {
 		protagCategory, ok = protagCategories[gameParams.Protag]
 
 		if !ok {
-			return locations, errors.New("protagonist does not exist or is misspelled")
+			acceptedProtags := make([]string, 0, len(protagCategories))
+			for protag := range protagCategories {
+				acceptedProtags = append(acceptedProtags, protag)
+			}
+			return locations, fmt.Errorf("protagonist does not exist or is misspelled (accepted values are: %v)", acceptedProtags)
 		}
 	}
 
@@ -137,7 +86,7 @@ func GetLocations(gameParams GameParams) (locations *Locations, err error) {
 		return locations, err
 	}
 
-	condition := fmt.Sprintf("Category:%s Locations", gameName)
+	condition := fmt.Sprintf("Category:%s Locations", game.Name)
 	if protagCategory != "" {
 		condition += "|" + protagCategory
 	}
@@ -174,17 +123,13 @@ func GetLocations(gameParams GameParams) (locations *Locations, err error) {
 	}
 
 	for _, locationToProcess := range locationsToProcess {
-		if err != nil {
-			return locations, err
-		}
-
 		for _, value := range locationToProcess.Map() {
 			value, err := value.Object()
 			if err != nil {
 				return locations, err
 			}
 
-			location, err := processLocation(gameName, value)
+			location, err := processLocation(game.Name, value)
 			if err != nil {
 				return locations, err
 			}
@@ -196,23 +141,29 @@ func GetLocations(gameParams GameParams) (locations *Locations, err error) {
 	return locations, err
 }
 
-func GetConnections(gameParams GameParams) (connections *Connections, err error) {
-	gameName, ok := gameNames[gameParams.GameCode]
+func GetConnections(gameParams GameParams, wikiConfig setup.WikiConfig) (connections *Connections, err error) {
+	game, ok := wikiConfig.Games[gameParams.GameCode]
 	if !ok {
 		return connections, errors.New("game not supported")
 	}
 
-	connections = &Connections{
-		Game: gameParams.GameCode,
-	}
-	protagCategories, hasMultipleProtags := protagCategoriesPerGame[gameParams.GameCode]
+	protagCategories := game.Protagonists
+	hasMultipleProtags := len(protagCategories) > 0
 
 	if !hasMultipleProtags && gameParams.Protag != "" {
 		return connections, errors.New("game has only one protagonist")
 	}
 
 	if hasMultipleProtags && len(gameParams.Protag) == 0 {
-		return connections, errors.New("game has multiple protagonists, please specify one")
+		acceptedProtags := make([]string, 0, len(protagCategories))
+		for protag := range protagCategories {
+			acceptedProtags = append(acceptedProtags, protag)
+		}
+		return connections, fmt.Errorf("game has multiple protagonists, please specify one (accepted values are: %v)", acceptedProtags)
+	}
+
+	connections = &Connections{
+		Game: gameParams.GameCode,
 	}
 
 	protagCategory := ""
@@ -220,7 +171,11 @@ func GetConnections(gameParams GameParams) (connections *Connections, err error)
 		protagCategory, ok = protagCategories[gameParams.Protag]
 
 		if !ok {
-			return connections, errors.New("protagonist does not exist or is misspelled")
+			acceptedProtags := make([]string, 0, len(protagCategories))
+			for protag := range protagCategories {
+				acceptedProtags = append(acceptedProtags, protag)
+			}
+			return connections, fmt.Errorf("protagonist does not exist or is misspelled (accepted values are: %v)", acceptedProtags)
 		}
 	}
 
@@ -229,7 +184,7 @@ func GetConnections(gameParams GameParams) (connections *Connections, err error)
 		return connections, err
 	}
 
-	conditions := []string{fmt.Sprintf("%s:+", gameName), "Is subobject type::connection"}
+	conditions := []string{fmt.Sprintf("%s:+", game.Name), "Is subobject type::connection"}
 	if protagCategory != "" {
 		conditions = append(conditions, fmt.Sprintf("-Has subobject::<q>[[%s]]</q>", protagCategory))
 	}
@@ -266,10 +221,6 @@ func GetConnections(gameParams GameParams) (connections *Connections, err error)
 	}
 
 	for _, connectionToProcess := range connectionsToProcess {
-		if err != nil {
-			return connections, err
-		}
-
 		for _, value := range connectionToProcess.Map() {
 			value, err := value.Object()
 			if err != nil {
@@ -288,8 +239,8 @@ func GetConnections(gameParams GameParams) (connections *Connections, err error)
 	return connections, err
 }
 
-func GetAuthors(gameCode string) (authors []*Author, err error) {
-	gameName, ok := gameNames[gameCode]
+func GetAuthors(gameCode string, wikiConfig setup.WikiConfig) (authors []*Author, err error) {
+	game, ok := wikiConfig.Games[gameCode]
 	if !ok {
 		return authors, errors.New("game not supported")
 	}
@@ -299,7 +250,7 @@ func GetAuthors(gameCode string) (authors []*Author, err error) {
 		return authors, err
 	}
 
-	conditions := fmt.Sprintf("-Has subobject::%s:Authors", gameName)
+	conditions := fmt.Sprintf("-Has subobject::%s:Authors", game.Name)
 	printouts := []string{"Author/Name", "Author/Original Name"}
 	queryParams := []string{"sort=Author/Name", "order=asc", "limit=500"}
 
@@ -318,17 +269,13 @@ func GetAuthors(gameCode string) (authors []*Author, err error) {
 	}
 
 	for _, authorToProcess := range authorsToProcess {
-		if err != nil {
-			return authors, err
-		}
-
 		for _, value := range authorToProcess.Map() {
 			value, err := value.Object()
 			if err != nil {
 				return authors, err
 			}
 
-			author, err := processAuthor(gameCode, value)
+			author, err := processAuthor(value)
 			if err != nil {
 				return authors, err
 			}
@@ -339,9 +286,9 @@ func GetAuthors(gameCode string) (authors []*Author, err error) {
 	return authors, err
 }
 
-func GetMaps(gameCode string, locationTitle string) (locationMaps []*LocationMap, err error) {
+func GetMaps(gameCode string, locationTitle string, wikiConfig setup.WikiConfig) (locationMaps []*LocationMap, err error) {
 	locationMaps = []*LocationMap{}
-	gameName, ok := gameNames[gameCode]
+	game, ok := wikiConfig.Games[gameCode]
 	if !ok {
 		return locationMaps, errors.New("game not supported")
 	}
@@ -351,7 +298,7 @@ func GetMaps(gameCode string, locationTitle string) (locationMaps []*LocationMap
 		return locationMaps, err
 	}
 
-	conditions := fmt.Sprintf("%s:%s", gameName, locationTitle)
+	conditions := fmt.Sprintf("%s:%s", game.Name, locationTitle)
 	printouts := "Has location map"
 
 	parameters := params.Values{
@@ -368,10 +315,6 @@ func GetMaps(gameCode string, locationTitle string) (locationMaps []*LocationMap
 	}
 
 	for _, locationToProcess := range locationsToProcess {
-		if err != nil {
-			return locationMaps, err
-		}
-
 		for _, value := range locationToProcess.Map() {
 			value, err := value.Object()
 			if err != nil {
@@ -401,9 +344,9 @@ func GetMaps(gameCode string, locationTitle string) (locationMaps []*LocationMap
 	return locationMaps, err
 }
 
-func GetVendingMachines(gameCode string) (vendingMachines []*VendingMachine, err error) {
+func GetVendingMachines(gameCode string, wikiConfig setup.WikiConfig) (vendingMachines []*VendingMachine, err error) {
 	vendingMachines = []*VendingMachine{}
-	gameName, ok := gameNames[gameCode]
+	game, ok := wikiConfig.Games[gameCode]
 	if !ok {
 		return vendingMachines, errors.New("game not supported")
 	}
@@ -413,7 +356,7 @@ func GetVendingMachines(gameCode string) (vendingMachines []*VendingMachine, err
 		return vendingMachines, err
 	}
 
-	conditions := []string{fmt.Sprintf("-Has subobject::%s:Vending Machine", gameName), "Vending Machine/Is implemented::true", "Vending Machine/Is accessible::true", "Vending Machine/Is secret::false"}
+	conditions := []string{fmt.Sprintf("-Has subobject::%s:Vending Machine", game.Name), "Vending Machine/Is implemented::true", "Vending Machine/Is accessible::true", "Vending Machine/Is secret::false"}
 	printouts := []string{"Has image path", "Vending Machine/Map ID", "Vending Machine/Event ID"}
 	queryParams := []string{"sort=Vending Machine/Location", "order=asc", "limit=500"}
 
@@ -432,10 +375,6 @@ func GetVendingMachines(gameCode string) (vendingMachines []*VendingMachine, err
 	}
 
 	for _, vmToProcess := range vmsToProcess {
-		if err != nil {
-			return vendingMachines, err
-		}
-
 		for _, value := range vmToProcess.Map() {
 			value, err := value.Object()
 			if err != nil {
@@ -454,11 +393,12 @@ func GetVendingMachines(gameCode string) (vendingMachines []*VendingMachine, err
 	return vendingMachines, err
 }
 
-func GetImages(gameParams GameParams) (images *LocationImages, err error) {
-	gameName, ok := gameNames[gameParams.GameCode]
+func GetImages(gameParams GameParams, wikiConfig setup.WikiConfig) (images *LocationImages, err error) {
+	game, ok := wikiConfig.Games[gameParams.GameCode]
 	if !ok {
 		return images, errors.New("game not supported")
 	}
+
 	images = &LocationImages{
 		Game: gameParams.GameCode,
 	}
@@ -467,9 +407,9 @@ func GetImages(gameParams GameParams) (images *LocationImages, err error) {
 		"action":      "query",
 		"format":      "json",
 		"list":        "categorymembers",
-		"cmtitle":     fmt.Sprintf("Category:%s Locations", gameName),
+		"cmtitle":     fmt.Sprintf("Category:%s Locations", game.Name),
 		"cmprop":      "title",
-		"cmnamespace": namespaceNumbers[gameParams.GameCode],
+		"cmnamespace": game.Namespace,
 		"cmlimit":     "50",
 	}
 
@@ -957,7 +897,7 @@ func processConnection(gameCode string, value *jason.Object) (connection *Connec
 	return connection, err
 }
 
-func processAuthor(gameCode string, value *jason.Object) (author *Author, err error) {
+func processAuthor(value *jason.Object) (author *Author, err error) {
 	author = &Author{}
 	printouts, err := value.GetObject("printouts")
 	if err != nil {
