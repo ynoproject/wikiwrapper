@@ -1,0 +1,4 @@
+origins:
+  - origin: "https://your.site"
+    methods:
+      - "GET"

@@ -1,0 +1,11 @@
+# Actual implementation example, covering cases of games with and without multiple protagonists.
+games:
+  game1:
+    name: "Yume Nikki"
+    namespace: "3000"
+  game2:
+    name: "Uneven Dream"
+    namespace: "3014"
+    protagonists:
+      kubotsuki: "Category:Kubotsuki's Worlds"
+      totsutsuki: "Category:Totsutsuki's Worlds"
