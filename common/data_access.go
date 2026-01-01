@@ -65,7 +65,8 @@ func GetLocations(gameParams GameParams, wikiConfig setup.WikiConfig) (locations
 	}
 
 	locations = &Locations{
-		Game: gameParams.GameCode,
+		Game:   gameParams.GameCode,
+		Protag: gameParams.Protag,
 	}
 
 	protagCategory := ""
@@ -132,6 +133,10 @@ func GetLocations(gameParams GameParams, wikiConfig setup.WikiConfig) (locations
 			location, err := processLocation(game.Name, value)
 			if err != nil {
 				return locations, err
+			}
+
+			if gameParams.Protag != "" {
+				location.Protags = []string{gameParams.Protag}
 			}
 
 			locations.Locations = append(locations.Locations, location)
