@@ -24,7 +24,6 @@ type Location struct {
 type Locations struct {
 	Locations   []*Location `json:"locations"`
 	Game        string      `json:"game"`
-	Protag      string      `json:"protag,omitempty"`
 	ContinueKey string      `json:"continueKey,omitempty"`
 }
 

@@ -65,8 +65,7 @@ func GetLocations(gameParams GameParams, wikiConfig setup.WikiConfig) (locations
 	}
 
 	locations = &Locations{
-		Game:   gameParams.GameCode,
-		Protag: gameParams.Protag,
+		Game: gameParams.GameCode,
 	}
 
 	protagCategory := ""
