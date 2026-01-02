@@ -61,11 +61,23 @@ func GetLocations(gameParams GameParams, wikiConfig setup.WikiConfig) (locations
 		for protag := range protagCategories {
 			acceptedProtags = append(acceptedProtags, protag)
 		}
-		return locations, fmt.Errorf("game has multiple protagonists, please specify one (accepted values are: %v)", acceptedProtags)
+		locations = &Locations{
+			Game:    gameParams.GameCode,
+			Protags: acceptedProtags,
+		}
+		return locations, nil
+	}
+
+	var responseProtags []string
+	if hasMultipleProtags && gameParams.Protag != "" {
+		responseProtags = []string{gameParams.Protag}
+	} else if !hasMultipleProtags {
+		responseProtags = []string{}
 	}
 
 	locations = &Locations{
-		Game: gameParams.GameCode,
+		Game:    gameParams.GameCode,
+		Protags: responseProtags,
 	}
 
 	protagCategory := ""
