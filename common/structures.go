@@ -18,11 +18,13 @@ type Location struct {
 	VersionRemoved      string         `json:"versionRemoved,omitempty"`
 	VersionGaps         []string       `json:"versionGaps"`
 	MapIds              []int          `json:"mapIds"`
+	Protags             []string       `json:"protags,omitempty"`
 }
 
 type Locations struct {
 	Locations   []*Location `json:"locations"`
 	Game        string      `json:"game"`
+	Protags     []string    `json:"protags,omitempty"`
 	ContinueKey string      `json:"continueKey,omitempty"`
 }
 
